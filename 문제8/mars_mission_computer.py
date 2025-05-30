@@ -73,7 +73,17 @@ class MissionComputer:
     def get_mission_computer_info(self):
         # 시스템 정보를 JSON 형식으로 출력
         try:
-            info = {
+            # setting.txt에서 출력 항목 읽기
+            enabled_fields = []
+            if os.path.exists("setting.txt"):
+                with open("setting.txt", "r") as f:
+                    enabled_fields = [line.strip() for line in f if line.strip()]
+            else:
+                print("Warning: setting.txt not found. Defaulting to all fields.")
+                enabled_fields = ["Operating System", "OS Version", "CPU Type", "CPU Core Count", "Memory Size (GB)"]
+
+            # 전체 가능한 정보
+            full_info = {
                 "Operating System": platform.system(),
                 "OS Version": platform.version(),
                 "CPU Type": platform.processor(),
@@ -82,6 +92,10 @@ class MissionComputer:
                     os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES') / (1024 ** 3), 2
                 ) if hasattr(os, 'sysconf') else "Unavailable"
             }
+
+            # 설정에 따라 필터링
+            info = {key: full_info[key] for key in enabled_fields if key in full_info}
+
             print("Mission Computer Info:")
             print(json.dumps(info, indent=4))
         except Exception as e:
